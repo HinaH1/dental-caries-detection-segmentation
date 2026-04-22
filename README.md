@@ -1,54 +1,20 @@
-# Dental Caries Segmentation Using YOLOv8
+# Dental Caries Detection and Segmentation Using YOLO
 
 ## Project Overview
 
-This project investigates the use of deep learning for automatic segmentation of dental caries in periapical radiographs using Ultralytics YOLOv8.
+This project investigates the use of deep learning for automatic detection and segmentation of dental caries in periapical radiographs. Three models are developed and compared: a YOLOv8 object detection model, a YOLOv8 instance segmentation model, and a YOLO26 instance segmentation model.
 
-The aim is to develop and evaluate a computer vision model capable of identifying carious lesions from radiographic images, supporting potential applications in computer-aided dental diagnostics.
+The project is structured in two phases. Phase One develops and validates the experimental pipeline on open-source datasets. Phase Two applies that pipeline to CariXray, a clinically validated periapical X-ray dataset, enabling direct comparison against a published benchmark.
 
 ---
 
 ## Research Objectives
 
-- Validate and analyse dataset structure  
-- Perform annotation sanity checks  
-- Investigate dataset label distribution and class imbalance  
-- Train a baseline YOLOv8 segmentation model  
-- Evaluate model performance using mAP, precision, recall and IoU  
-- Experiment with hyperparameter optimisation and model improvements  
-
----
-
-## Dataset
-
-The dataset consists of periapical radiographs annotated for dental caries using polygon segmentation masks.
-
-Preprocessing steps:
-- Removal of non-relevant classes (restoration class removed)  
-- Verification of YOLOv8 segmentation format  
-- Label distribution analysis  
-- Annotation alignment validation  
-
-Class distribution analysis identified:
-- Total images: 757  
-- Images containing caries: 343  
-- Images without caries: 414  
-
-This class imbalance is considered during model evaluation.
-
----
-
-## Model Architecture
-
-- Framework: Ultralytics YOLOv8  
-- Task: Instance Segmentation  
-- Input: Periapical radiographs  
-- Output: Polygon segmentation masks identifying carious lesions  
-
-YOLOv8 was selected due to:
-- Strong performance in real-time detection and segmentation tasks  
-- Efficient training pipeline  
-- Built-in evaluation metrics (mAP50, mAP50-95, Precision, Recall)  
+- Develop a YOLOv8 object detection model to establish a bounding box detection baseline for caries localisation
+- Develop a YOLOv8-seg instance segmentation model to produce pixel-level lesion masks
+- Develop a YOLO26-seg instance segmentation model and compare its performance against YOLOv8-seg
+- Evaluate and compare all three models against the published CariXray benchmark of Dang et al.
+- Identify limitations and propose directions for future work
 
 ---
 
@@ -57,11 +23,19 @@ YOLOv8 was selected due to:
 ```
 dental-caries-segmentation/
 │
-├── notebooks/
-│   └── dental_caries_segmentation.ipynb
+├── phase_one/
+│   ├── experiment_one_yolov8_detection/
+│   ├── experiment_two_yolov8_seg/
+│   └── experiment_three_yolo26_seg/
 │
-├── experiments/
-│   └── experiment_log.md
+├── phase_two/
+│   ├── experiment_one_yolov8_detection/
+│   ├── experiment_two_yolov8_seg/
+│   └── experiment_three_yolo26_seg/
+│
+├── data_preparation/
+│   ├── prepare_detection.py
+│   └── prepare_segmentation.py
 │
 ├── requirements.txt
 ├── README.md
@@ -70,40 +44,163 @@ dental-caries-segmentation/
 
 ---
 
+## Datasets
+
+### Phase One: Open-Source Datasets
+
+Phase One used two open-source datasets sourced from Roboflow and Kaggle to develop the pipeline before the clinically validated dataset was available.
+
+**Experiment One — Kaggle Dental Cavity Radiograph Images**
+- Source: [Kaggle — alokkumar175358](https://www.kaggle.com/datasets/alokkumar175358/dental-cavity-radiograph-images)
+- Task: Object detection (bounding boxes)
+- Purpose: Establish a working detection pipeline and confirm the limitations of bounding box outputs for caries localisation
+
+**Experiments Two and Three — tumverilerdeneme (Roboflow)**
+- Source: [Roboflow — University workspace](https://universe.roboflow.com/university-ciekc/tumverilerdeneme)
+- Task: Instance segmentation (polygon masks)
+- Notes: Clinically reviewed and approved before use. The Restoration class was removed to isolate caries annotations only. This dataset is one of the sources used by Dang et al. in constructing CariXray.
+
+### Phase Two: CariXray
+
+- Source: Dang et al., *Machine Vision and Applications*, 2025. DOI: [10.1007/s00138-025-01776-8](https://doi.org/10.1007/s00138-025-01776-8)
+- ~4,700 periapical radiographs annotated for dental caries under dental expert supervision
+- Supports both bounding box detection and polygon segmentation tasks
+- Split: 3,299 training / 500 validation / 358 test images
+- Selected to enable direct benchmarking against published results
+
+> CariXray access was obtained directly from the authors. To reproduce Phase Two experiments, contact Dang et al. to request dataset access.
+
+---
+
 ## Methodology
 
-1. Dataset acquisition and validation  
-2. Dataset structure verification  
-3. Label distribution analysis  
-4. Annotation sanity check (polygon-to-pixel validation)  
-5. Baseline YOLOv8 segmentation training  
-6. Performance evaluation  
-7. Iterative experimentation  
+The project followed a two-phase iterative structure rather than a fixed sprint-based approach, allowing each experiment to inform the next.
+
+### Phase One: Pipeline Development
+
+Three experiments were conducted on open-source datasets to develop the training pipeline and validate the approach before progressing to the main phase.
+
+1. **Experiment One — YOLOv8 Detection:** Trained on the Kaggle dataset for 50 epochs at 640px. Confirmed that bounding box outputs are insufficient for representing the irregular boundaries of carious lesions, motivating the move to segmentation.
+
+2. **Experiment Two — YOLOv8n-seg:** Trained on tumverilerdeneme. A baseline run (50 epochs, 640px) was followed by an improved run (100 epochs max, 768px, early stopping patience 20) after the baseline showed the model had not yet converged at epoch 50.
+
+3. **Experiment Three — YOLO26n-seg:** Trained on tumverilerdeneme using the same two-stage approach. The higher starting classification loss at epoch 1 (11.04 vs 6.39 for YOLOv8-seg) confirmed YOLO26 requires more epochs to settle, reinforcing the extended training configuration used in Phase Two.
+
+### Phase Two: Main Experiments on CariXray
+
+Three experiments were conducted on CariXray using the configuration informed by Phase One findings.
+
+1. **Experiment One — YOLOv8n Detection**
+2. **Experiment Two — YOLOv8n-seg**
+3. **Experiment Three — YOLO26n-seg**
+
+All Phase Two experiments used 100 epochs, 640px image size, batch size 16, and no early stopping, matching the Dang et al. benchmark configuration to ensure comparability.
+
+---
+
+## Model Architectures
+
+| Model | Task | Variant | Rationale |
+|---|---|---|---|
+| YOLOv8n | Object Detection | Nano | Establishes detection baseline; matches Dang et al. config |
+| YOLOv8n-seg | Instance Segmentation | Nano | Strong literature performance; evaluated in Dang et al. benchmark |
+| YOLO26n-seg | Instance Segmentation | Nano | Most recent YOLO architecture; not previously evaluated in dental imaging |
+
+All models were accessed through the [Ultralytics](https://github.com/ultralytics/ultralytics) framework (v8.4.37).
+
+---
+
+## Training Configuration
+
+### Phase One
+
+| Parameter | Baseline (Exp 2 & 3) | Improved (Exp 2 & 3) |
+|---|---|---|
+| Epochs | 50 | 100 (max) |
+| Image size | 640px | 768px |
+| Batch size | 4 | 4 |
+| Early stopping | No | Yes, patience 20 |
+| Environment | Google Colab (T4 GPU) | Google Colab (T4 GPU) |
+
+### Phase Two
+
+| Parameter | All Experiments |
+|---|---|
+| Epochs | 100 |
+| Image size | 640px |
+| Batch size | 16 |
+| Early stopping | No |
+| Environment | NVIDIA RTX 4070 (12GB VRAM), Python 3.9, CUDA 13.1 |
+
+Random seeds: Experiment One = 42, Experiment Two = 123, Experiment Three = 54.
+
+---
+
+## Evaluation Metrics
+
+All experiments were evaluated using the same five metrics reported by Dang et al.:
+
+- **Precision** — fraction of positive predictions that are correct
+- **Recall** — fraction of true lesions successfully detected
+- **F1-score** — harmonic mean of Precision and Recall
+- **mAP@0.5** — mean Average Precision at 50% IoU overlap threshold
+- **mAP@0.5:0.95** — mean Average Precision averaged across IoU thresholds from 50% to 95%
+
+All models were evaluated on the held-out test set (358 images), which played no part in any training or configuration decisions.
+
+---
+
+## Phase Two Results Summary
+
+| Model | Precision | Recall | F1 | mAP@0.5 | mAP@0.5:0.95 |
+|---|---|---|---|---|---|
+| YOLOv8n Detection | — | 0.832 | — | 0.861 | 0.531 |
+| YOLOv8n-seg (detection component) | — | 0.845 | — | 0.870 | 0.557 |
+| YOLOv8n-seg (segmentation component) | — | — | — | 0.857 | 0.508 |
+| YOLO26n-seg (detection component) | — | 0.789 | — | — | — |
+| YOLO26n-seg (segmentation component) | — | — | — | 0.847 | — |
+
+All three models outperform FastInst, the best non-YOLO model in the Dang et al. benchmark, across every metric. YOLOv8n-seg produces the strongest overall results. YOLO26n-seg, despite being the more recent architecture, falls below YOLOv8n-seg on every metric, extending the finding of Lam et al. (2025) that newer YOLO versions do not necessarily outperform older ones for this task.
 
 ---
 
 ## Reproducibility
 
-To install required dependencies:
+### Phase One
+
+Install dependencies and run notebooks in order:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-To train using YOLOv8 (example):
+Phase One notebooks are self-contained and run on Google Colab. Open each notebook and run cells in sequence. The Roboflow API key must be added to Colab Secrets before running.
+
+### Phase Two
+
+Phase Two requires the CariXray dataset, which must be requested directly from Dang et al. Once obtained, run the preparation scripts to reorganise the data into YOLO format:
 
 ```bash
-yolo segment train data=data.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+python data_preparation/prepare_detection.py
+python data_preparation/prepare_segmentation.py
 ```
+
+Then train using Ultralytics (example for Experiment Two):
+
+```bash
+yolo segment train data=data_fixed.yaml model=yolov8n-seg.pt epochs=100 imgsz=640 batch=16 seed=123
+```
+
+All scripts, configuration files, training logs, and results CSVs needed to reproduce all six experiments are available in this repository.
 
 ---
 
 ## Author
 
 Hina Habib  
-BSc Computer Science  
-Final Year Dissertation  
-2026  
+BSc Computer Science (Digital & Technology Solutions)  
+COMP3932 Synoptic Project  
+University of Leeds, 2025/2026
 
 ---
 
