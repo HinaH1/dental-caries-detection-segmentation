@@ -29,13 +29,10 @@ dental-caries-segmentation/
 │   └── experiment_three_yolo26_seg/
 │
 ├── phase_two/
-│   ├── experiment_one_yolov8_detection/
-│   ├── experiment_two_yolov8_seg/
-│   └── experiment_three_yolo26_seg/
+│   ├── experiment_one/
+│   ├── experiment_two/
+│   └── experiment_three/
 │
-├── data_preparation/
-│   ├── prepare_detection.py
-│   └── prepare_segmentation.py
 │
 ├── requirements.txt
 ├── README.md
