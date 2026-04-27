@@ -69,9 +69,12 @@ metrics = model.val(
     split='test'
 )
 
-# Print the test set results
 print("\nTest Set Results:")
-print(f"Precision:  {metrics.box.mp:.4f}")
-print(f"Recall:     {metrics.box.mr:.4f}")
-print(f"mAP50:      {metrics.box.map50:.4f}")
-print(f"mAP50-95:   {metrics.box.map:.4f}")
+print(f"Precision(B):  {metrics.box.mp:.4f}")
+print(f"Recall(B):     {metrics.box.mr:.4f}")
+print(f"mAP50(B):      {metrics.box.map50:.4f}")
+print(f"mAP50-95(B):   {metrics.box.map:.4f}")
+print(f"Precision(M):  {metrics.seg.mp:.4f}")
+print(f"Recall(M):     {metrics.seg.mr:.4f}")
+print(f"mAP50(M):      {metrics.seg.map50:.4f}")
+print(f"mAP50-95(M):   {metrics.seg.map:.4f}")
