@@ -12,7 +12,7 @@ about lesion shape and extent.
 
 A different seed to Experiment One is used as each experiment is treated 
 as an independent training run. The results are evaluated on the same 
-held-out test set to allow direct comparison with Experiment One and 
+held-out test set to allow comparison with Experiment One and 
 against the Dang et al. benchmark.
 
 Author: HinaH1
@@ -47,13 +47,14 @@ print("YOLOv8 segmentation model loaded successfully")
 
 # Train on the CariXray segmentation dataset
 results = model.train(
-    data="/usr/tmp/final_year_project/SEGMENTATION/data.yaml",
-    epochs=100,
+    data="/usr/tmp/trial/SEGMENTATION/data.yaml",
+    epochs=200,
     imgsz=640,
-    batch=16,
+    batch=8,
+    patience = 20,
     seed=SEED,
     device=0,  # GPU
-    project="/usr/tmp/final_year_project/EXPERIMENT2",
+    project="/usr/tmp/trial/EXPERIMENT2",
     name="yolov8n_caries_seg",
     exist_ok=True,
 )
@@ -62,10 +63,10 @@ print("Training complete")
 
 # Load the best weights saved during training and evaluate on the test set
 # The test set was kept completely separate from training and validation
-model = YOLO('/usr/tmp/final_year_project/EXPERIMENT2/yolov8n_caries_seg/weights/best.pt')
+model = YOLO('/usr/tmp/trial/EXPERIMENT2/yolov8n_caries_seg/weights/best.pt')
 
 metrics = model.val(
-    data='/usr/tmp/final_year_project/SEGMENTATION/SEGMENTATION/data.yaml',
+    data='/usr/tmp/trial/SEGMENTATION/SEGMENTATION/data.yaml',
     split='test'
 )
 
